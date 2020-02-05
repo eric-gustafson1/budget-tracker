@@ -2,7 +2,8 @@ const FILES_TO_CACHE = [
   "/",
   "index.html",
   "/assets/css/style.css",
-  "index.js"
+  "index.js",
+  "db.js"
 ]
 
 const PRECACHE = 'precache-v1';
@@ -30,7 +31,7 @@ self.addEventListener("activate", event => {
   );
 });
 
-self.addEventListener("fetch", event => {
+self.addEventListener("post", event => {
   if (event.request.url.startsWith(self.location.origin)) {
     event.respondWith(
       caches.match(event.request).then(cachedResponse => {
@@ -39,8 +40,8 @@ self.addEventListener("fetch", event => {
         }
 
         return caches.open(RUNTIME).then(cache => {
-          return fetch(event.request).then(response => {
-            return cache.put(event.request, response.clone()).then(() => {
+          return post(event.request).then(response => {
+            return cache.post(event.request, response.clone()).then(() => {
               return response;
             });
           });
