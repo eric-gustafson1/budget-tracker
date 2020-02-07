@@ -17,7 +17,6 @@ self.addEventListener("install", event => {
   );
 });
 
-// The activate handler takes care of cleaning up old caches.
 self.addEventListener("activate", event => {
   const currentCaches = [PRECACHE, RUNTIME];
   event.waitUntil(
@@ -31,36 +30,17 @@ self.addEventListener("activate", event => {
   );
 });
 
-self.addEventListener("fetch", event => {
-  if (event.request.url.startsWith(self.location.origin)) {
-    event.respondWith(
-      caches.match(event.request).then(cachedResponse => {
-        if (cachedResponse) {
-          return cachedResponse;
+
+self.addEventListener("fetch", function (event) {
+  event.respondWith(
+    fetch(event.request).catch(function () {
+      return caches.match(event.request).then(function (response) {
+        if (response) {
+          return response;
+        } else if (event.request.headers.get("accept").includes("text/html")) {
+          return caches.match("/index.html");
         }
-
-        return caches.open(RUNTIME).then(cache => {
-          return post(event.request).then(response => {
-            return cache.post(event.request, response.clone()).then(() => {
-              return response;
-            });
-          });
-        });
-      })
-    );
-  }
+      });
+    })
+  );
 });
-
-// self.addEventListener("fetch", function (event) {
-//   event.respondWith(
-//     fetch(event.request).catch(function () {
-//       return caches.match(event.request).then(function (response) {
-//         if (response) {
-//           return response;
-//         } else if (event.request.headers.get("accept").includes("text/html")) {
-//           return caches.match("/index.html");
-//         }
-//       });
-//     })
-//   );
-// });
